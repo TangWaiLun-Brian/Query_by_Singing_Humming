@@ -28,6 +28,8 @@ class IOACAS_dataset():
             print('loading preloaded wav files...')
             wav_dict = np.load(save_file_path, allow_pickle=True).item()
             self.wav_list = wav_dict.get('x')
+            for i in range(len(self.wav_list)):
+                self.wav_list[i] = self.wav_list[i][0]
         else:
             print('loading wav files...')
             x_list = []
@@ -51,7 +53,7 @@ class IOACAS_dataset():
             for midi_file_name in self.midi_file_name:
                 mid = pm.PrettyMIDI(os.path.join(self.data_root, midi_file_name))
                 chromagram = mid.get_chroma(fs=100)
-                chromagram_list.append(chromagram.T)
+                chromagram_list.append(chromagram)
 
             self.chromagram_list = chromagram_list
             midi_dict = {'chromagram': self.chromagram_list}
@@ -60,5 +62,5 @@ class IOACAS_dataset():
         print(f'total number of files in database: {len(self.chromagram_list)}')
 
 
-data_root = ".\data\IOACAS_QBH_Coprus"
-IOACAS_dataset(data_root=data_root)
+# data_root = ".\data\IOACAS_QBH_Coprus"
+# IOACAS_dataset(data_root=data_root)
