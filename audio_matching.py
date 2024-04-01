@@ -134,14 +134,9 @@ data_list = data.chromagram_list
 
 for i in range(len(data_list)):
     data_list[i] = data_list[i] / (np.max(data_list[i], axis=1).reshape(-1, 1) + epislon)
-# plot_chroma_vertical(data_list[0].T)
-# plot_chroma_vertical(data_list[1].T)
 
 query_list = data.wav_list
-# query_list = query_list
-# print(len(query_list))
-# for i in range(10):
-#     print(query_list[i][0].shape)
+
 max_score = -9999
 target_ranking = []
 for i, query in enumerate(query_list[0:]):
@@ -153,8 +148,9 @@ for i, query in enumerate(query_list[0:]):
     extracted_query_chroma =  extract_feature(query)
     for j, db_chroma in enumerate(data_list):
         # score = Dynamic_Time_Wrapping_substring(extracted_query_chroma, smoothing_downsampling(db_chroma, filter_length=41, downsampling_factor=10))
-
-        downsample_db_chroma = db_chroma[:, ::100]
+        # var = 0
+        # print(db_chroma.shape)
+        downsample_db_chroma = db_chroma[:, ::40]
         # score, var = Dynamic_Time_Wrapping_subsequence(extracted_query_chroma, downsample_db_chroma)
         score, var = Dynamic_Time_Wrapping_subsequence_cost(extracted_query_chroma, downsample_db_chroma)
         # score, var = naive_exhaustion(extracted_query_chroma, downsample_db_chroma)
@@ -165,8 +161,9 @@ for i, query in enumerate(query_list[0:]):
         if str(data.singing_ground_truth_ID[i]) in data.midi_file_name[j]:
             target_score = score
             target_ind = j
+            # print(extracted_query_chroma.shape, db_chroma.shape)
     rank = (np.array(score_list) <= target_score).sum()
-    print(rank)
+    print(f'{i}: {rank}')
     if i >= 10:
         break
 score_list = np.array(score_list)
