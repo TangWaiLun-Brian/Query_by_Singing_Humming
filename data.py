@@ -20,6 +20,7 @@ class IOACAS_dataset():
 
         self.chromagram_list = []
         self.wav_list = []
+        self.db_wav_list = []
         self.process_midi_files(save_file_path=os.path.join(data_root, '..', 'IOACAS_midi.npy'))
         self.process_input_wav_files(save_file_path=os.path.join(data_root, '..', 'IOACAS_wav.npy'))
 
@@ -47,16 +48,23 @@ class IOACAS_dataset():
             print('loading precomputed chromagram of midi file...')
             midi_dict = np.load(save_file_path, allow_pickle=True).item()
             self.chromagram_list = midi_dict.get('chromagram')
+            self.db_wav_list = midi_dict.get('db_wav')
         else:
             print('computing chromagram of midi file...')
             chromagram_list = []
+            db_wav_list = []
             for midi_file_name in self.midi_file_name:
                 mid = pm.PrettyMIDI(os.path.join(self.data_root, midi_file_name))
                 chromagram = mid.get_chroma(fs=22050//512)
                 chromagram_list.append(chromagram)
 
+                tmp_dir = os.path.join(self.data_root, 'midi2audio', midi_file_name.split('\\')[-1].split('.')[-2]+'.wav')
+                y, sr = librosa.load(tmp_dir)
+                db_wav_list.append(y)
+
             self.chromagram_list = chromagram_list
-            midi_dict = {'chromagram': self.chromagram_list}
+            self.db_wav_list = db_wav_list
+            midi_dict = {'chromagram': self.chromagram_list, 'db_wav': self.db_wav_list}
             np.save(save_file_path, midi_dict)
 
         print(f'total number of files in database: {len(self.chromagram_list)}')

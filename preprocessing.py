@@ -46,6 +46,7 @@ def extract_feature(wav_data, vis=False):
     onset_frames = librosa.onset.onset_detect(y=wav_data)[:]
     index = [[i + j + 1 for j in range(1)] for i in onset_frames]
     index = np.array(index).reshape(-1)
+    index = np.clip(index, a_min=0, a_max=(wav_data.shape[0]-2048)//512)
     chroma1 = librosa.feature.chroma_stft(y=wav_data, n_fft=2048, hop_length=512)[:, index]
 
     chroma2 = librosa.feature.chroma_cens(y=wav_data, hop_length=512)[:, index]

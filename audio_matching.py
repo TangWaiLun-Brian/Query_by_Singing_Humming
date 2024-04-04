@@ -8,11 +8,11 @@ import libfmp.b
 import libfmp.c4
 import libfmp.c7
 
-from visualization import plot_chroma_vertical
+from visualization import plot_chroma_vertical, plot_spec_2
 from data import IOACAS_dataset
 from preprocessing import extract_feature, smoothing_downsampling
 from dynamic_time_warping import *
-
+from audio_fingerprint import *
 
 data_root = data_root = ".\data\IOACAS_QBH_Coprus"
 epislon = 1e-5
@@ -43,17 +43,25 @@ for i, query in enumerate(query_list[0:]):
         # downsample_db_chroma = db_chroma[:, ::40]
         # print(extracted_query_chroma.shape, downsample_db_chroma.shape)
         # score, var = Dynamic_Time_Wrapping_subsequence(extracted_query_chroma, downsample_db_chroma)
-        score, var = Dynamic_Time_Wrapping_subsequence_cost(extracted_query_chroma, downsample_db_chroma)
+        # score = Dynamic_Time_Wrapping_subsequence_cost(extracted_query_chroma, downsample_db_chroma)
         # score, var = cross_correlation(extracted_query_chroma, downsample_db_chroma)
 
+        dist_freq = 5  # kappa: neighborhood in frequency direction
+        dist_time = 3  # tau: neighborhood in time direction
+        X = compute_spectrogram(query)
+        Y = compute_spectrogram(data.db_wav_list[j])
 
+        cx = compute_constellation_map(X, dist_freq, dist_time)
+        cy = compute_constellation_map(Y, dist_freq, dist_time)
+        # print(cx.shape, cy.shape)
+        score = constellation_map_matching(cx, cy)
         matching.append(j)
         score_list.append(score)
-        back_tracking.append(var)
+
         if str(data.singing_ground_truth_ID[i]) in data.midi_file_name[j]:
             target_score = score
             target_ind = j
-
+            # plot_spec_2(X, Y)
             # fn_wav_X = os.path.join(r'C:\Users\lun\OneDrive\Documents\CUHK\Academics\AIST\AIST3110\Project\Query_by_Singing_Humming\data\IOACAS_QBH_Coprus\IOACAS_pt1', data.singing_file_path[j])
             # ell = 21
             # d = 5

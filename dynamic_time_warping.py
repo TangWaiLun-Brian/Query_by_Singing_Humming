@@ -99,7 +99,7 @@ def Dynamic_Time_Wrapping_subsequence_cost(query_chroma, db_chroma):
     vertical = subsequence // (m+1)
     vertical_spacing = vertical[1:] - vertical[:-1]
     penalty = np.abs(vertical_spacing[1:] - vertical_spacing[:-1]) ** 2 * 2
-    return -(Match_Matrix[n, m] + np.sum(penalty)), (horizontal, vertical)
+    return -(Match_Matrix[n, m] + np.sum(penalty))
 
 def Dynamic_Time_Wrapping_subsequence_cost1(query_chroma, db_chroma):
     n = db_chroma.shape[1]
