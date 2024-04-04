@@ -233,9 +233,9 @@ for i, query in enumerate(query_list[0:]):
         # score = Dynamic_Time_Wrapping_substring(extracted_query_chroma, smoothing_downsampling(db_chroma, filter_length=41, downsampling_factor=10))
         # var = 0
         # print(db_chroma.shape)
-        downsample_db_chroma = smoothing_downsampling(db_chroma, filter_length=40, downsampling_factor=40)
+        downsample_db_chroma = smoothing_downsampling(db_chroma, filter_length=80, downsampling_factor=80)
         # downsample_db_chroma = db_chroma[:, ::40]
-
+        # print(extracted_query_chroma.shape, downsample_db_chroma.shape)
         # score, var = Dynamic_Time_Wrapping_subsequence(extracted_query_chroma, downsample_db_chroma)
         score, var = Dynamic_Time_Wrapping_subsequence_cost(extracted_query_chroma, downsample_db_chroma)
         # score, var = naive_exhaustion(extracted_query_chroma, downsample_db_chroma)

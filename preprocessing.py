@@ -44,17 +44,17 @@ def extract_feature(wav_data, vis=False):
 
     # current best: 12, 3, 3
     onset_frames = librosa.onset.onset_detect(y=wav_data)[:]
-    index = [[i + j + 0 for j in range(3)] for i in onset_frames]
+    index = [[i + j + 1 for j in range(1)] for i in onset_frames]
     index = np.array(index).reshape(-1)
     chroma1 = librosa.feature.chroma_stft(y=wav_data, n_fft=2048, hop_length=512)[:, index]
 
     chroma2 = librosa.feature.chroma_cens(y=wav_data, hop_length=512)[:, index]
-    chroma3 = librosa.feature.chroma_cqt(y=wav_data)
+    chroma3 = librosa.feature.chroma_cqt(y=wav_data, hop_length=512)[:, index]
 
-    chroma1 = smoothing_downsampling(chroma1, filter_length=3, downsampling_factor=3)
-    print(chroma1.shape, chroma2.shape)
+    # chroma1 = smoothing_downsampling(chroma1, filter_length=3, downsampling_factor=3)
+    print(chroma1.shape, chroma2.shape, chroma3.shape)
     # chroma2 = smoothing_downsampling(chroma2, filter_length=3, downsampling_factor=3)
-    chroma3 = smoothing_downsampling(chroma3, filter_length=41, downsampling_factor=20)
+    # chroma3 = smoothing_downsampling(chroma3, filter_length=10, downsampling_factor=10)
 
     if vis:
         plot_chroma_vertical(chroma1, title='stft')
@@ -63,7 +63,7 @@ def extract_feature(wav_data, vis=False):
 
 
         plt.show()
-    return chroma2
+    return (chroma2 + chroma1) / 2
 
 def smoothing_downsampling(chroma, filter_length=30, downsampling_factor=5, kernel_type='boxcar'):
     # smoothing

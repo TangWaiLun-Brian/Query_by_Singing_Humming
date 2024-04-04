@@ -52,7 +52,7 @@ class IOACAS_dataset():
             chromagram_list = []
             for midi_file_name in self.midi_file_name:
                 mid = pm.PrettyMIDI(os.path.join(self.data_root, midi_file_name))
-                chromagram = mid.get_chroma(fs=100)
+                chromagram = mid.get_chroma(fs=22050//512)
                 chromagram_list.append(chromagram)
 
             self.chromagram_list = chromagram_list
