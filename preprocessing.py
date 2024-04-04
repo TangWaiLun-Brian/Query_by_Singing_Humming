@@ -52,7 +52,7 @@ def extract_feature(wav_data, vis=False):
     chroma3 = librosa.feature.chroma_cqt(y=wav_data, hop_length=512)[:, index]
 
     # chroma1 = smoothing_downsampling(chroma1, filter_length=3, downsampling_factor=3)
-    print(chroma1.shape, chroma2.shape, chroma3.shape)
+    # print(chroma1.shape, chroma2.shape, chroma3.shape)
     # chroma2 = smoothing_downsampling(chroma2, filter_length=3, downsampling_factor=3)
     # chroma3 = smoothing_downsampling(chroma3, filter_length=10, downsampling_factor=10)
 
