@@ -12,6 +12,105 @@ from visualization import plot_chroma_vertical
 from data import IOACAS_dataset
 from preprocessing import extract_feature, smoothing_downsampling
 
+def smoothing_downsampling2(feature, filter_length=30, downsampling_factor=5, kernel_type='boxcar'):
+  # smoothing
+  filter_kernel = signal.get_window(kernel_type, filter_length).reshape(-1)
+  smooth_feature = signal.convolve(feature, filter_kernel, mode='same') / filter_length
+
+  # downsampling
+  downsampled_feature = smooth_feature[::downsampling_factor]
+  return downsampled_feature
+
+def compute_cost_matrix(query, db):
+    return libfmp.c3.compute_cost_matrix(query, db, metric='seuclidean')
+
+
+def compute_accumulated_cost_matrix(C):
+    n = C.shape[0]
+    m = C.shape[1]
+
+    D = np.zeros((n + 2, m + 2))
+    D[:2, :] = np.inf
+    D[:, :2] = np.inf
+    D[2, 2] = C[0, 0]
+
+    for i in range(n):
+        for j in range(m):
+            if i == 0 and j == 0:
+                continue
+            D[i + 2, j + 2] = min(D[i + 1, j + 0], D[i + 0, j + 1], D[i + 1, j + 1]) + C[i, j]
+
+    return D[2:, 2:]
+
+
+def compute_optimal_warping_path(D):
+    i = D.shape[0] - 1
+    j = D.shape[1] - 1
+    P = []
+    P.append((i, j))
+
+    while i > 0 or j > 0:
+        if i == 0:
+            j -= 1
+        elif j == 0:
+            i -= 1
+        else:
+            min_val = min(D[i - 2, j - 1], D[i - 1, j - 2], D[i - 1, j - 1])
+            if min_val == D[i - 1, j - 1]:
+                i -= 1
+                j -= 1
+            elif min_val == D[i - 1, j - 2]:
+                i -= 1
+                j -= 2
+            else:
+                i -= 2
+                j -= 1
+
+        P.append((i, j))
+
+    P.reverse()
+    P = np.array(P)
+    return P
+
+def dtw(q, y, downsample_rate=20000, sr=22050):
+    # downsample_rate = 5000
+    # q, sr = librosa.load('001_002.wav')
+    X = smoothing_downsampling2(q, filter_length=100, downsampling_factor=downsample_rate, kernel_type='boxcar')
+
+    # y, sr = librosa.load('10027.wav')
+    db = y / np.max(np.abs(y))
+
+    db_filter = db[np.abs(db) >= 1e-2]
+
+    onsets_times = librosa.onset.onset_detect(y=db_filter, sr=sr, units='time')
+    onsets_sindex = (onsets_times * sr // downsample_rate).astype(int)
+    L = onsets_sindex.shape[0]
+    N = X.shape[0]
+    i = 0
+    score = 9999999
+    P_opt = []
+    sindex_opt = -1
+    # db_downsample = db_filter[::downsample_rate]
+    db_downsample = smoothing_downsampling2(db_filter, filter_length=100, downsampling_factor=downsample_rate, kernel_type='boxcar')
+
+    M = db_downsample.shape[0]
+
+    while i < L and onsets_sindex[i] + N < M:
+        A = X
+        B = db_downsample[onsets_sindex[i]: onsets_sindex[i] + N]
+        C = libfmp.c3.compute_cost_matrix(A, B, metric='seuclidean')
+        D = compute_accumulated_cost_matrix(C)
+        P = compute_optimal_warping_path(D)
+        # print(D[-1, -1])
+        if D[-1, -1] < score:
+            score = D[-1, -1]
+            P_opt = P
+            sindex_opt = onsets_sindex[i]
+            C_opt = C
+            D_opt = D
+            B_opt = B
+        i += 1
+    return -score
 def compute_cens_from_file(fn_wav, Fs=22050, N=4410, H=2205, ell=21, d=5):
     """Compute CENS features from file
 
@@ -50,7 +149,7 @@ def Dynamic_Time_Wrapping_subsequence_cost_back(query_chroma, db_chroma):
     #                      title='Cost matrix $C$ with ground truth annotations (blue rectangles)',
     #                      colorbar=False, cmap=cmap)
     # plt.show()
-    return -D[-1, -1] / length, (np.ones((length,)), np.ones((length,)))
+    return -D[-1, -1] / length
 
 def cross_correlation(query_chroma, db_chroma):
     n = db_chroma.shape[1] - query_chroma.shape[1] + 1
@@ -60,7 +159,7 @@ def cross_correlation(query_chroma, db_chroma):
         score = db_chroma[:, i:i+length].reshape(-1) @ query_chroma[:, :].reshape(-1)
         max_score = max(max_score, score)
 
-    return max_score, (np.ones((length,)), np.ones((length,)))
+    return max_score
 
 def Dynamic_Time_Wrapping_subsequence_cost(query_chroma, db_chroma):
     n = db_chroma.shape[1]

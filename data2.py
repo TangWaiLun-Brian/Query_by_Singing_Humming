@@ -60,7 +60,9 @@ class MIR_dataset():
                             self.pv_files.append(pv_data)
 
         # load the .wav files using librosa
+        print('loading files to librosa...')
         self.wav_data_list = [librosa.load(file)[0] for file in self.wav_files]
+        self.db_wav_list = [librosa.load(os.path.join(self.data_root, 'midi2audio', code + '.wav'))[0] for code in self.song_codes]
         print(f"Number of WAV Files: {len(self.wav_data_list)}")
         print(f"List of song codes: {self.song_codes}")
 
@@ -69,5 +71,6 @@ class MIR_dataset():
         max_value = max(max(file_data) for file_data in self.pv_files)
         print(f'Range of the values in pv_data: [{min_value}, {max_value}]')
 
-data_root = "..\data\MIR-QBSH-corpus"
-MIR_dataset(data_root=data_root)
+if __name__ == '__main__':
+    data_root = ".\data\MIR-QBSH-corpus"
+    MIR_dataset(data_root=data_root)

@@ -10,14 +10,15 @@ import libfmp.c7
 
 from visualization import plot_chroma_vertical, plot_spec_2
 from data import IOACAS_dataset
+from data2 import MIR_dataset
 from preprocessing import extract_feature, smoothing_downsampling
 from dynamic_time_warping import *
 from audio_fingerprint import *
 
-data_root = data_root = ".\data\IOACAS_QBH_Coprus"
+data_root = ".\data\MIR-QBSH-corpus"
 epislon = 1e-5
 
-data = IOACAS_dataset(data_root=data_root)
+data = MIR_dataset(data_root=data_root)
 # print(len(data.chromagram_list))
 data_list = data.chromagram_list
 
