@@ -1,6 +1,7 @@
 import os
 import librosa
 import pandas as pd
+import pretty_midi as pm
 
 class MIR_dataset():
     def __init__(self, data_root=None):
@@ -61,8 +62,9 @@ class MIR_dataset():
 
         # load the .wav files using librosa
         print('loading files to librosa...')
-        self.wav_data_list = [librosa.load(file)[0] for file in self.wav_files]
-        self.db_wav_list = [librosa.load(os.path.join(self.data_root, 'midi2audio', code + '.wav'))[0] for code in self.song_codes]
+        self.wav_data_list = [librosa.load(file)[0] for file in self.wav_files[:50]]
+        self.db_wav_list = [librosa.load(os.path.join(self.data_root, 'midi2audio', code + '.wav'))[0] for code in self.df[0]]
+        self.chroma_list = [pm.PrettyMIDI(os.path.join(self.data_root, 'midiFile', midi_file_name)).get_chroma(fs=22050//512) for midi_file_name in self.midi_file_list]
         print(f"Number of WAV Files: {len(self.wav_data_list)}")
         print(f"List of song codes: {self.song_codes}")
 

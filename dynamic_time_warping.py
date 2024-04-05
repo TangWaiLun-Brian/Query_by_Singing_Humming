@@ -7,19 +7,11 @@ import os
 import libfmp.b
 import libfmp.c4
 import libfmp.c7
+import scipy
 
 from visualization import plot_chroma_vertical
 from data import IOACAS_dataset
-from preprocessing import extract_feature, smoothing_downsampling
-
-def smoothing_downsampling2(feature, filter_length=30, downsampling_factor=5, kernel_type='boxcar'):
-  # smoothing
-  filter_kernel = signal.get_window(kernel_type, filter_length).reshape(-1)
-  smooth_feature = signal.convolve(feature, filter_kernel, mode='same') / filter_length
-
-  # downsampling
-  downsampled_feature = smooth_feature[::downsampling_factor]
-  return downsampled_feature
+from preprocessing import *
 
 def compute_cost_matrix(query, db):
     return libfmp.c3.compute_cost_matrix(query, db, metric='seuclidean')
@@ -72,16 +64,16 @@ def compute_optimal_warping_path(D):
     P = np.array(P)
     return P
 
-def dtw(q, y, downsample_rate=20000, sr=22050):
+def dtw(q, y, downsample_rate=30000, sr=22050):
     # downsample_rate = 5000
     # q, sr = librosa.load('001_002.wav')
-    X = smoothing_downsampling2(q, filter_length=100, downsampling_factor=downsample_rate, kernel_type='boxcar')
+    X = smoothing_downsampling2(q, filter_length=250, downsampling_factor=downsample_rate, kernel_type='boxcar')
 
     # y, sr = librosa.load('10027.wav')
     db = y / np.max(np.abs(y))
 
-    db_filter = db[np.abs(db) >= 1e-2]
-
+    # db_filter = db[np.abs(db) >= 1e-2]
+    db_filter = db
     onsets_times = librosa.onset.onset_detect(y=db_filter, sr=sr, units='time')
     onsets_sindex = (onsets_times * sr // downsample_rate).astype(int)
     L = onsets_sindex.shape[0]
@@ -91,7 +83,7 @@ def dtw(q, y, downsample_rate=20000, sr=22050):
     P_opt = []
     sindex_opt = -1
     # db_downsample = db_filter[::downsample_rate]
-    db_downsample = smoothing_downsampling2(db_filter, filter_length=100, downsampling_factor=downsample_rate, kernel_type='boxcar')
+    db_downsample = smoothing_downsampling2(db_filter, filter_length=250, downsampling_factor=downsample_rate, kernel_type='boxcar')
 
     M = db_downsample.shape[0]
 
@@ -142,13 +134,17 @@ def Dynamic_Time_Wrapping_subsequence_cost_back(query_chroma, db_chroma):
     D = libfmp.c7.compute_accumulated_cost_matrix_subsequence_dtw(C)
     length = query_chroma.shape[1]
 
-    # fig, ax = plt.subplots(2, 1, gridspec_kw={'width_ratios': [1],
-    #                                           'height_ratios': [1, 1]}, figsize=(8, 4))
-    # cmap = libfmp.b.compressed_gray_cmap(alpha=-10, reverse=True)
-    # libfmp.b.plot_matrix(C, ax=[ax[0]], ylabel='Time (seconds)',
-    #                      title='Cost matrix $C$ with ground truth annotations (blue rectangles)',
-    #                      colorbar=False, cmap=cmap)
-    # plt.show()
+    return -D[-1, -1] / length
+
+def Dynamic_Time_Wrapping_subsequence_cost_back2(query, db):
+    # C = libfmp.c7.cost_matrix_dot(query, db)
+    query = smoothing_downsampling2(query, filter_length=300, downsampling_factor=15000)
+    db = smoothing_downsampling2(db, filter_length=300, downsampling_factor=15000)
+
+    C = scipy.spatial.distance_matrix(query.reshape(-1, 1), db.reshape(-1, 1))
+    D = libfmp.c7.compute_accumulated_cost_matrix_subsequence_dtw(C)
+    length = query.shape[0]
+
     return -D[-1, -1] / length
 
 def cross_correlation(query_chroma, db_chroma):

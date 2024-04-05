@@ -6,7 +6,14 @@ from scipy import signal
 from visualization import plot_chroma_vertical
 from data import IOACAS_dataset
 
+def smoothing_downsampling2(feature, filter_length=30, downsampling_factor=5, kernel_type='boxcar'):
+  # smoothing
+  filter_kernel = signal.get_window(kernel_type, filter_length).reshape(-1)
+  smooth_feature = signal.convolve(feature, filter_kernel, mode='same') / filter_length
 
+  # downsampling
+  downsampled_feature = smooth_feature[::downsampling_factor]
+  return downsampled_feature
 
 def extract_feature(wav_data, vis=False):
     # direct hardcode
@@ -43,14 +50,15 @@ def extract_feature(wav_data, vis=False):
 
 
     # current best: 12, 3, 3
+    wav_data = smoothing_downsampling2(wav_data, filter_length=1000, downsampling_factor=10)
     onset_frames = librosa.onset.onset_detect(y=wav_data)[:]
     index = [[i + j + 1 for j in range(1)] for i in onset_frames]
     index = np.array(index).reshape(-1)
     index = np.clip(index, a_min=0, a_max=(wav_data.shape[0]-2048)//512)
-    chroma1 = librosa.feature.chroma_stft(y=wav_data, n_fft=2048, hop_length=512)[:, index]
+    chroma1 = librosa.feature.chroma_stft(y=wav_data, n_fft=2048, hop_length=512)[:, :]
 
-    chroma2 = librosa.feature.chroma_cens(y=wav_data, hop_length=512)[:, index]
-    chroma3 = librosa.feature.chroma_cqt(y=wav_data, hop_length=512)[:, index]
+    chroma2 = librosa.feature.chroma_cens(y=wav_data, hop_length=512)[:, :]
+    chroma3 = librosa.feature.chroma_cqt(y=wav_data, hop_length=512)[:, :]
 
     # chroma1 = smoothing_downsampling(chroma1, filter_length=3, downsampling_factor=3)
     # print(chroma1.shape, chroma2.shape, chroma3.shape)
