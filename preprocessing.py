@@ -50,7 +50,7 @@ def extract_feature(wav_data, vis=False):
 
 
     # current best: 12, 3, 3
-    wav_data = smoothing_downsampling2(wav_data, filter_length=1000, downsampling_factor=10)
+    wav_data = smoothing_downsampling2(wav_data, filter_length=1000, downsampling_factor=4)
     onset_frames = librosa.onset.onset_detect(y=wav_data)[:]
     index = [[i + j + 1 for j in range(1)] for i in onset_frames]
     index = np.array(index).reshape(-1)
