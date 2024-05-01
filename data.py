@@ -70,5 +70,6 @@ class IOACAS_dataset():
         print(f'total number of files in database: {len(self.chromagram_list)}')
 
 
-# data_root = ".\data\IOACAS_QBH_Coprus"
-# IOACAS_dataset(data_root=data_root)
+if __name__ == '__main__':
+    data_root = ".\data\IOACAS_QBH_Coprus"
+    IOACAS_dataset(data_root=data_root)

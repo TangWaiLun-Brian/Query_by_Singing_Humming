@@ -1,9 +1,3 @@
-import librosa
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import signal
-import os
-
 import libfmp.b
 import libfmp.c4
 import libfmp.c7
@@ -14,10 +8,22 @@ from data import IOACAS_dataset
 from preprocessing import *
 
 def compute_cost_matrix(query, db):
+    '''
+    utility function for cost matrix computation
+    :param query: query wave data
+    :param db: database wave data
+    :return: cost matrix
+    '''
     return libfmp.c3.compute_cost_matrix(query, db, metric='seuclidean')
 
 
 def compute_accumulated_cost_matrix(C):
+    '''
+    utility function for accumulated cost matrix computation
+    Reference: https://www.audiolabs-erlangen.de/resources/MIR/FMP/C7/C7S2_SubsequenceDTW.html
+    :param C: cost matrix
+    :return: accumulated cost matrix
+    '''
     n = C.shape[0]
     m = C.shape[1]
 
@@ -65,6 +71,14 @@ def compute_optimal_warping_path(D):
     return P
 
 def slicing_dtw(q, y, downsample_rate=30000, sr=22050):
+    '''
+    perform slicing dtw
+    :param q: query wave data
+    :param y: database wave data
+    :param downsample_rate: downsampling rate on both audio
+    :param sr: sampling rate
+    :return: matching score
+    '''
     # downsample_rate = 5000
     # q, sr = librosa.load('001_002.wav')
     X = smoothing_downsampling2(q, filter_length=250, downsampling_factor=downsample_rate, kernel_type='boxcar')
@@ -104,14 +118,26 @@ def slicing_dtw(q, y, downsample_rate=30000, sr=22050):
         i += 1
     return -score
 
-def Dynamic_Time_Wrapping_subsequence_chroma(query_chroma, db_chroma):
-    C = libfmp.c7.cost_matrix_dot(query_chroma, db_chroma)
+def Dynamic_Time_Wrapping_subsequence_spec(query_spec, db_spec):
+    '''
+    utility function for subsequence dtw on spectrogram
+    :param query_spec: query spectrogram
+    :param db_spec: database spectrogram
+    :return: mathcing score
+    '''
+    C = libfmp.c7.cost_matrix_dot(query_spec, db_spec)
     D = libfmp.c7.compute_accumulated_cost_matrix_subsequence_dtw(C)
-    length = db_chroma.shape[1]
+    length = db_spec.shape[1]
 
     return -D[-1, -1] / length
 
 def Dynamic_Time_Wrapping_subsequence_wav(query, db):
+    '''
+    utility function for subsequence dtw on wave data
+    :param query: query wave data
+    :param db: database wave data
+    :return: matching score
+    '''
     # C = libfmp.c7.cost_matrix_dot(query, db)
     query = smoothing_downsampling2(query, filter_length=300, downsampling_factor=15000)
     db = smoothing_downsampling2(db, filter_length=300, downsampling_factor=15000)
@@ -123,6 +149,12 @@ def Dynamic_Time_Wrapping_subsequence_wav(query, db):
     return -D[-1, -1] / length
 
 def cross_correlation_chroma(query_chroma, db_chroma):
+    '''
+    perform cross correlation on chroma features
+    :param query_chroma: query chroma features
+    :param db_chroma: database chroma features
+    :return: matching score
+    '''
     n = db_chroma.shape[1] - query_chroma.shape[1] + 1
     length = query_chroma.shape[1]
     max_score = -9999
@@ -133,6 +165,12 @@ def cross_correlation_chroma(query_chroma, db_chroma):
     return max_score
 
 def Dynamic_Time_Wrapping_subsequence_dot(query_chroma, db_chroma):
+    '''
+    perform subsequence dtw on chroma with dot product
+    :param query_chroma: query chroma
+    :param db_chroma: database chroma
+    :return: mathcing score
+    '''
     n = db_chroma.shape[1]
     m = query_chroma.shape[1]
     Match_Matrix = np.zeros((n+1, m+1))
@@ -167,6 +205,12 @@ def Dynamic_Time_Wrapping_subsequence_dot(query_chroma, db_chroma):
     return -(Match_Matrix[n, m] + np.sum(penalty))
 
 def Dynamic_Time_Wrapping_subsequence_norm(query_chroma, db_chroma):
+    '''
+    perform subsequence dtw on chroma with euclidean distance
+    :param query_chroma: query chroma
+    :param db_chroma: database chroma
+    :return: matching score
+    '''
     n = db_chroma.shape[1]
     m = query_chroma.shape[1]
     Match_Matrix = np.zeros((n+1, m+1))
