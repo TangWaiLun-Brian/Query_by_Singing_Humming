@@ -18,14 +18,14 @@ from audio_fingerprint import *
 from chroma_fingerprint import *
 
 data_root = ".\data\MIR-QBSH-corpus"
-epislon = 1e-5
+epsilon = 1e-5
 
 data = MIR_dataset(data_root=data_root)
 # print(len(data.chromagram_list))
 # data_list = data.chromagram_list
 
 # for i in range(len(data_list)):
-#     data_list[i] = data_list[i] / (np.max(data_list[i], axis=1).reshape(-1, 1) + epislon)
+#     data_list[i] = data_list[i] / (np.max(data_list[i], axis=1).reshape(-1, 1) + epsilon)
 
 query_list = data.wav_data_list
 data_list = data.db_wav_list
