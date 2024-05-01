@@ -72,7 +72,7 @@ def extract_feature(wav_data, vis=False):
 
 
         plt.show()
-    return (chroma2 + chroma1) / 2
+    return (chroma1 + chroma2) / 2
 
 def smoothing_downsampling(chroma, filter_length=30, downsampling_factor=5, kernel_type='boxcar'):
     # smoothing

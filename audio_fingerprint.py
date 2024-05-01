@@ -12,6 +12,10 @@ def constellation_map_matchinglib(C_Q, C_D, tol_freq=1, tol_time=1):
     # print(Delta[shift_max])
     return Delta[shift_max]
 
+def compute_mfcc(wav_data, bin_range=[0, 100], n=2048, h=1024):
+    spectrogram = librosa.feature.melspectrogram(y=wav_data, n_fft=n, hop_length=h)
+    return np.abs(spectrogram[:, ::4])
+
 def compute_spectrogram(wav_data, bin_range=[0, 100], n=2048, h=1024):
     spectrogram = librosa.stft(y=wav_data, n_fft=n, hop_length=h)
     return np.abs(spectrogram[bin_range[0]:bin_range[1], ::4])

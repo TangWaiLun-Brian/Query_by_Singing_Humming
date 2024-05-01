@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 import os
+import pandas as pd
 
 import libfmp.b
 import libfmp.c4
@@ -28,8 +29,7 @@ data = MIR_dataset(data_root=data_root)
 
 query_list = data.wav_data_list
 data_list = data.db_wav_list
-print(len(query_list), len(data_list))
-print(query_list[0].shape, data_list[0].shape)
+
 max_score = -9999
 target_ranking = []
 for i, query in enumerate(query_list):
@@ -41,13 +41,13 @@ for i, query in enumerate(query_list):
     extracted_query_chroma = extract_feature(query)
     # print(query.shape, extracted_query_chroma.shape)
     for j, db_wav in enumerate(data_list):
-        downsample_db_chroma = data.chroma_list[j][:, ::4]
-
+        # downsample_db_chroma = data.chroma_list[j][:, ::4]
+        downsample_db_chroma = extract_feature(db_wav)[:, :]
         # spectrogram fingerprint best param
-        # dis_freq = 7
-        # dis_time = 1
-        # tol_freq = 3
-        # tol_time = 1
+        dis_freq = 7
+        dis_time = 1
+        tol_freq = 3
+        tol_time = 1
 
         # chroma fingerprint param
         # dis_freq = 3
@@ -58,14 +58,17 @@ for i, query in enumerate(query_list):
         # spectro fingerprint
         # q = smoothing_downsampling2(query, filter_length=1, downsampling_factor=4)
         # db = smoothing_downsampling2(db_wav, filter_length=1, downsampling_factor=4)
-        X = compute_spectrogram(query)
+        X = compute_spectrogram(smoothing_downsampling2(query, filter_length=40, downsampling_factor=1))
         Y = compute_spectrogram(db_wav)
-        # C_X = compute_constellation_maplib(X, dist_freq=dis_freq, dist_time=dis_time)
-        # C_Y = compute_constellation_maplib(Y, dist_freq=dis_freq, dist_time=dis_time)
-        # score = constellation_map_matchinglib(C_X, C_Y, tol_freq=tol_freq, tol_time=tol_time)
+        # X = compute_mfcc(smoothing_downsampling2(query, filter_length=40, downsampling_factor=1))
+        # Y = compute_mfcc(db_wav)
+
+        C_X = compute_constellation_maplib(X, dist_freq=dis_freq, dist_time=dis_time)
+        C_Y = compute_constellation_maplib(Y, dist_freq=dis_freq, dist_time=dis_time)
+        score = constellation_map_matchinglib(C_X, C_Y, tol_freq=tol_freq, tol_time=tol_time)
 
         # spectro dtw
-        score = Dynamic_Time_Wrapping_subsequence_chroma(X, Y)
+        # score = Dynamic_Time_Wrapping_subsequence_chroma(X, Y)
 
         # chroma fingerprint, binary mask
         # C_X = compute_chroma_constellation_map(extracted_query_chroma, dist_freq=dis_freq, dist_time=dis_time)
@@ -90,12 +93,20 @@ for i, query in enumerate(query_list):
         if (data.song_codes[i]) == (data.df[0][j]):
             target_score = score
             target_ind = j
+            # plot_spec_2(X, Y)
 
     rank = (np.array(score_list) >= target_score).sum()
     target_ranking.append(rank)
-    print(f'{i}: {rank}')
+
+    ind = np.argpartition(np.array(score_list), -10)[-10:]
+    df1 = data.df.iloc[ind]
+    print(f'Query {i}: Rank {rank}')
+    df1 = df1.set_index(pd.Index(range(1, 11)))
+    df1 = df1.iloc[:, df1.columns[1]:df1.columns[3]]
+    print(df1)
+    tmp = input('Press any keys and enter to continue: ')
 
 print('average ranking:', sum(target_ranking) / len(target_ranking))
-print('hit rate:', np.sum(np.array(target_ranking) <= 10))
+print('hit rate:', np.sum(np.array(target_ranking) <= 10) / len(target_ranking))
 
 
