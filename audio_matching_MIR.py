@@ -42,7 +42,7 @@ for i, query in enumerate(query_list):
     # print(query.shape, extracted_query_chroma.shape)
     for j, db_wav in enumerate(data_list):
         # downsample_db_chroma = data.chroma_list[j][:, ::4]
-        downsample_db_chroma = extract_feature(db_wav)[:, :]
+        # downsample_db_chroma = extract_feature(db_wav)[:, :]
         # spectrogram fingerprint best param
         dis_freq = 7
         dis_time = 1
@@ -104,7 +104,7 @@ for i, query in enumerate(query_list):
     df1 = df1.set_index(pd.Index(range(1, 11)))
     df1 = df1.iloc[:, df1.columns[1]:df1.columns[3]]
     print(df1)
-    tmp = input('Press any keys and enter to continue: ')
+    # tmp = input('Press any keys and enter to continue: ')
 
 print('average ranking:', sum(target_ranking) / len(target_ranking))
 print('hit rate:', np.sum(np.array(target_ranking) <= 10) / len(target_ranking))
