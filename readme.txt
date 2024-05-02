@@ -12,7 +12,8 @@ We mainly use MIR-QBSH-corpus as our dataset.
 It can be downloaded via https://music-ir.org/evaluation/MIREX/data/qbsh/MIR-QBSH-corpus.tar.gz
 Please make sure it is located at '.\data\MIR-QBSH-corpus\'.
 
-If you wish to test on IOACAS-corpus, it can be downloaded via https://music-ir.org/evaluation/MIREX/data/qbsh/IOACAS_QBH_Corpus.tar.gz
+If you wish to test on IOACAS-corpus, it can be downloaded via
+https://music-ir.org/evaluation/MIREX/data/qbsh/IOACAS_QBH_Corpus.tar.gz
 Please make sure it is located at '.\data\'IOACAS_QBH_Coprus'.
 
 Installation:
@@ -43,5 +44,4 @@ Available methods:
 - DTW with slicing technique
 Moreover, if you wish to pause the process after each query, you can set the debug variable to True. This will prompt
 a user input and will only continue when you press any keys and enter.
-
 Similarly, test can be performed on IOACAS-corpus by running 'audio_matching_IOACAS.py'.
