@@ -1,0 +1,7 @@
+libfmp
+librosa
+matplotlib
+numpy
+pandas
+pretty_midi
+scipy
